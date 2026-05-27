@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+# Prevent Netlify from mistakenly trying to compile Supabase Deno functions
+[build.environment]
+  NEXT_PRIVATE_LOCAL_WEBPACK = "true"
+
+# Optionally explicitly set the functions directory to an empty or separate Netlify folder
+# so it doesn't conflict with Supabase's Edge Functions
+[functions]
+  directory = "netlify/functions"
