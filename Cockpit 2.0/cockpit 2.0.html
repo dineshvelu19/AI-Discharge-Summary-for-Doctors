@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aura Workspace — Physician Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:     #060E1C;
+  --ink-2:   #0F1D35;
+  --ink-3:   #1A2D4A;
+  --ink-4:   #2E4268;
+  --teal:    #0ABFA3;
+  --teal-d:  #088C78;
+  --teal-l:  #CFFAF3;
+  --amber:   #F59E0B;
+  --amber-l: #FEF3C7;
+  --red:     #EF4444;
+  --red-l:   #FEE2E2;
+  --slate:   #64748B;
+  --mist:    #F4F6FA;
+  --mist-2:  #E8EDF6;
+  --white:   #FFFFFF;
+  --border:  rgba(30,50,90,0.10);
+  --border-s:rgba(30,50,90,0.18);
+  --serif:   'Cormorant Garamond', Georgia, serif;
+  --sans:    'Plus Jakarta Sans', system-ui, sans-serif;
+  --r:       8px;
+  --r-lg:    12px;
+  --sidebar: 228px;
+  --right:   272px;
+  --topbar:  56px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--sans); background: var(--mist); color: var(--ink); display: flex; flex-direction: column; }
+
+/* ── TOPBAR ─────────────────────────────── */
+.topbar {
+  height: var(--topbar); flex-shrink: 0;
+  background: var(--ink); display: flex; align-items: center;
+  padding: 0 20px; gap: 16px; border-bottom: 1px solid rgba(255,255,255,.06);
+  position: relative; z-index: 50;
+}
+.tb-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; flex-shrink: 0; }
+.tb-mark { width: 30px; height: 30px; border-radius: 7px; background: rgba(10,191,163,.18); border: 1px solid rgba(10,191,163,.3); display: flex; align-items: center; justify-content: center; }
+.tb-mark svg { width: 15px; height: 15px; fill: var(--teal); }
+.tb-name { font-family: var(--serif); font-size: 19px; font-weight: 500; color: var(--white); letter-spacing: -.02em; }
+.tb-sep { width: 1px; height: 24px; background: rgba(255,255,255,.1); flex-shrink: 0; }
+.tb-ward { font-size: 12px; font-weight: 500; color: rgba(255,255,255,.45); display: flex; align-items: center; gap: 6px; }
+.tb-ward select { background: transparent; border: none; color: rgba(255,255,255,.45); font-family: var(--sans); font-size: 12px; cursor: pointer; outline: none; }
+.tb-ward select option { background: var(--ink); color: white; }
+.tb-spacer { flex: 1; }
+.tb-live { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: rgba(255,255,255,.4); }
+.tb-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.tb-time { font-size: 12px; font-weight: 500; color: rgba(255,255,255,.3); letter-spacing: .04em; }
+.tb-physician { display: flex; align-items: center; gap: 8px; padding: 5px 10px; border-radius: var(--r); background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); }
+.tb-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--teal-d); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: white; flex-shrink: 0; }
+.tb-doc { font-size: 12px; font-weight: 500; color: rgba(255,255,255,.75); }
+.tb-role { font-size: 10.5px; color: rgba(255,255,255,.35); }
+.tb-home { font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,.35); text-decoration: none; padding: 5px 12px; border: 1px solid rgba(255,255,255,.1); border-radius: var(--r); transition: all .2s; flex-shrink: 0; }
+.tb-home:hover { color: rgba(255,255,255,.7); background: rgba(255,255,255,.05); }
+
+/* ── BODY LAYOUT ──────────────────────── */
+.workspace { flex: 1; display: flex; overflow: hidden; }
+
+/* ── SIDEBAR ─────────────────────────── */
+.sidebar {
+  width: var(--sidebar); flex-shrink: 0;
+  background: var(--ink-2); border-right: 1px solid rgba(255,255,255,.06);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sb-header { padding: 14px 14px 10px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.sb-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.28); margin-bottom: 8px; }
+.sb-search { width: 100%; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); border-radius: 6px; padding: 6px 10px; font-family: var(--sans); font-size: 12px; color: rgba(255,255,255,.6); outline: none; }
+.sb-search::placeholder { color: rgba(255,255,255,.25); }
+.sb-queue { flex: 1; overflow-y: auto; padding: 8px; }
+.sb-queue::-webkit-scrollbar { width: 3px; }
+.sb-queue::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 99px; }
+.sb-section-label { font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.22); padding: 8px 6px 4px; }
+.pt-card { padding: 10px 10px; border-radius: var(--r); margin-bottom: 3px; cursor: pointer; border: 1px solid transparent; transition: all .18s; }
+.pt-card:hover { background: rgba(255,255,255,.04); }
+.pt-card.active { background: rgba(10,191,163,.1); border-color: rgba(10,191,163,.22); }
+.pt-name { font-size: 12.5px; font-weight: 500; color: rgba(255,255,255,.85); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pt-meta { font-size: 10.5px; color: rgba(255,255,255,.32); margin-bottom: 5px; }
+.pt-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 9.5px; font-weight: 500; padding: 2px 7px; border-radius: 99px; }
+.pill-crit  { background: rgba(239,68,68,.15);  color: #FCA5A5; }
+.pill-pend  { background: rgba(245,158,11,.15); color: #FCD34D; }
+.pill-ok    { background: rgba(10,191,163,.15);  color: var(--teal); }
+.pill-draft { background: rgba(255,255,255,.08); color: rgba(255,255,255,.45); }
+.sb-stats { padding: 12px 14px; border-top: 1px solid rgba(255,255,255,.06); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sb-stat { background: rgba(255,255,255,.04); border-radius: 6px; padding: 8px 10px; }
+.sb-stat-n { font-family: var(--serif); font-size: 22px; font-weight: 500; color: rgba(255,255,255,.8); line-height: 1; }
+.sb-stat-l { font-size: 9.5px; color: rgba(255,255,255,.3); margin-top: 2px; }
+
+/* ── MAIN CONTENT ─────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Patient header bar */
+.pt-header {
+  padding: 12px 20px; background: var(--white); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px; flex-shrink: 0;
+}
+.pt-header-info { flex: 1; }
+.pt-header-name { font-family: var(--serif); font-size: 20px; font-weight: 500; color: var(--ink); letter-spacing: -.02em; }
+.pt-header-meta { font-size: 12px; color: var(--slate); margin-top: 1px; }
+.pt-header-actions { display: flex; gap: 8px; align-items: center; }
+.status-badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 99px; display: flex; align-items: center; gap: 5px; }
+.status-crit { background: var(--red-l); color: #991B1B; border: 1px solid #FECACA; }
+.hdr-btn { padding: 7px 14px; border-radius: var(--r); font-family: var(--sans); font-size: 12.5px; font-weight: 500; cursor: pointer; border: 1px solid var(--border-s); background: var(--white); color: var(--ink); transition: all .18s; }
+.hdr-btn:hover { background: var(--mist); }
+.hdr-btn.teal { background: var(--teal); border-color: var(--teal); color: var(--ink); font-weight: 600; }
+.hdr-btn.teal:hover { background: #0DD4B5; }
+
+/* Step tabs */
+.step-tabs { display: flex; background: var(--white); border-bottom: 1px solid var(--border); padding: 0 20px; flex-shrink: 0; }
+.step-tab { display: flex; align-items: center; gap: 7px; padding: 10px 16px; font-size: 12.5px; font-weight: 500; color: var(--slate); border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; white-space: nowrap; transition: all .18s; }
+.step-tab:hover { color: var(--ink); }
+.step-tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+.step-tab.done { color: var(--teal-d); }
+.step-tab.done .step-num { background: var(--teal); color: white; }
+.step-num { width: 18px; height: 18px; border-radius: 50%; background: var(--mist-2); font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; color: var(--slate); flex-shrink: 0; }
+.step-tab.active .step-num { background: var(--ink); color: white; }
+
+/* Panels container */
+.panels { flex: 1; display: flex; overflow: hidden; }
+
+/* Draft panel */
+.draft-panel { flex: 1; overflow-y: auto; padding: 20px; }
+.draft-panel::-webkit-scrollbar { width: 4px; }
+.draft-panel::-webkit-scrollbar-thumb { background: var(--mist-2); border-radius: 99px; }
+
+/* ── RETRIEVAL SCREEN ─────────────────── */
+.retrieval-screen { max-width: 600px; margin: 40px auto; }
+.ret-title { font-family: var(--serif); font-size: 26px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+.ret-sub { font-size: 13.5px; color: var(--slate); margin-bottom: 32px; }
+.ret-source { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--white); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 8px; transition: border-color .3s; }
+.ret-source.done { border-color: rgba(10,191,163,.3); }
+.ret-source.warn { border-color: rgba(245,158,11,.4); }
+.ret-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.ret-icon.blue   { background: #EFF6FF; }
+.ret-icon.teal   { background: var(--teal-l); }
+.ret-icon.amber  { background: var(--amber-l); }
+.ret-icon.purple { background: #F5F3FF; }
+.ret-name { font-size: 13.5px; font-weight: 500; color: var(--ink); flex: 1; }
+.ret-sub2 { font-size: 11.5px; color: var(--slate); margin-top: 1px; }
+.ret-count { font-size: 12px; color: var(--slate); }
+.ret-status { font-size: 12px; font-weight: 500; width: 80px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
+.ret-status.loading { color: var(--slate); }
+.ret-status.ok  { color: var(--teal-d); }
+.ret-status.warn { color: #92400E; }
+.spinner { width: 14px; height: 14px; border: 2px solid var(--mist-2); border-top-color: var(--teal); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ret-gap-banner { background: var(--amber-l); border: 1px solid #FCD34D; border-radius: var(--r); padding: 12px 16px; margin-top: 16px; display: none; }
+.ret-gap-title { font-size: 13px; font-weight: 600; color: #92400E; margin-bottom: 4px; }
+.ret-gap-items { font-size: 12.5px; color: #B45309; line-height: 1.8; }
+.ret-cta-row { margin-top: 28px; display: flex; gap: 10px; }
+.btn-gen { padding: 12px 28px; background: var(--ink); border: none; border-radius: var(--r); font-family: var(--sans); font-size: 14px; font-weight: 600; color: white; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 8px; }
+.btn-gen:hover { background: var(--ink-2); transform: translateY(-1px); }
+.btn-gen:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+/* ── DRAFT REVIEW ─────────────────────── */
+.crit-banner { background: var(--red-l); border: 1px solid #FECACA; border-radius: var(--r); padding: 12px 16px; margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start; cursor: pointer; transition: opacity .2s; }
+.crit-banner:hover { opacity: .88; }
+.crit-banner .cb-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.crit-banner .cb-title { font-size: 13px; font-weight: 600; color: #991B1B; margin-bottom: 2px; }
+.crit-banner .cb-desc { font-size: 12.5px; color: #B91C1C; line-height: 1.5; }
+.crit-banner .cb-resolve { font-size: 11.5px; color: #991B1B; font-weight: 500; margin-top: 6px; text-decoration: underline; text-decoration-color: rgba(153,27,27,.4); }
+
+.draft-section { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 18px 20px; margin-bottom: 10px; }
+.ds-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.ds-title { font-size: 10.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--slate); flex: 1; }
+.ds-chip { font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 500; display: inline-flex; align-items: center; gap: 3px; }
+.chip-ok   { background: var(--teal-l); color: var(--teal-d); }
+.chip-warn { background: var(--amber-l); color: #92400E; }
+.chip-miss { background: var(--mist-2); color: var(--slate); }
+.ds-body { font-size: 13px; color: var(--ink); line-height: 1.8; }
+.ds-body .f-warn { background: #FEF3C7; border-radius: 3px; padding: 1px 4px; color: #92400E; cursor: help; }
+.ds-body .f-crit { background: var(--red-l); border-radius: 3px; padding: 1px 4px; color: #991B1B; cursor: help; font-weight: 500; }
+.ds-body .f-miss { background: var(--mist-2); border-radius: 3px; padding: 1px 4px; color: var(--slate); border-bottom: 1.5px dashed var(--slate); cursor: pointer; }
+.ds-body .f-resolved { background: #D1FAE5; border-radius: 3px; padding: 1px 4px; color: #065F46; }
+.ds-edit { width: 100%; border: 1px solid var(--border-s); border-radius: 6px; padding: 8px 10px; font-family: var(--sans); font-size: 12.5px; color: var(--ink); margin-top: 10px; outline: none; resize: vertical; min-height: 60px; display: none; }
+.ds-edit:focus { border-color: var(--teal); }
+.med-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.med-row:last-child { border-bottom: none; }
+.med-name-w { font-size: 13px; font-weight: 500; color: var(--ink); flex: 1; }
+.med-detail { font-size: 12px; color: var(--slate); }
+.med-flag-icon { font-size: 14px; flex-shrink: 0; }
+
+/* ── PATIENT SUMMARY ──────────────────── */
+.patient-view { max-width: 380px; margin: 20px auto; }
+.phone-wrap { background: var(--ink-2); border-radius: 36px; padding: 14px 10px; border: 8px solid var(--ink-3); }
+.phone-notch { width: 72px; height: 18px; background: var(--ink-2); border-radius: 99px; margin: 0 auto 12px; }
+.phone-inner { background: white; border-radius: 24px; padding: 18px 16px; }
+.ph-header { text-align: center; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+.ph-hosp { font-size: 9.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--slate); margin-bottom: 3px; }
+.ph-title { font-family: var(--serif); font-size: 17px; font-weight: 500; color: var(--ink); }
+.ph-name { font-size: 12px; color: var(--slate); margin-top: 2px; }
+.lang-toggle { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+.lt-btn { font-size: 10px; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--border); color: var(--slate); cursor: pointer; background: white; font-family: var(--sans); transition: all .15s; }
+.lt-btn.on { background: var(--ink); border-color: var(--ink); color: white; }
+.qa-block { background: var(--mist); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; border-left: 3px solid var(--teal); }
+.qa-q { font-size: 11.5px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.qa-a { font-size: 11.5px; color: var(--slate); line-height: 1.6; }
+.med-cards { background: var(--mist); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; }
+.med-cards-title { font-size: 11.5px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+.mc { background: white; border-radius: 7px; padding: 7px 10px; margin-bottom: 6px; border: 1px solid var(--border); }
+.mc-name { font-size: 11.5px; font-weight: 600; color: var(--ink); }
+.mc-dose { font-size: 10.5px; color: var(--slate); margin-top: 1px; }
+.alert-block { background: #FEF2F2; border: 1px solid #FECACA; border-radius: 10px; padding: 11px 13px; }
+.alert-title { font-size: 11.5px; font-weight: 600; color: #991B1B; margin-bottom: 5px; }
+.alert-item { font-size: 11px; color: #B91C1C; margin-top: 3px; display: flex; gap: 5px; }
+
+/* ── RIGHT PANEL ──────────────────────── */
+.right-panel { width: var(--right); flex-shrink: 0; border-left: 1px solid var(--border); background: var(--white); display: flex; flex-direction: column; overflow: hidden; }
+.rp-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.rp-title { font-size: 12px; font-weight: 600; color: var(--ink); }
+.rp-count { font-size: 11px; color: var(--slate); }
+.rp-body { flex: 1; overflow-y: auto; padding: 12px 14px; }
+.rp-body::-webkit-scrollbar { width: 3px; }
+.rp-body::-webkit-scrollbar-thumb { background: var(--mist-2); border-radius: 99px; }
+.rp-section { margin-bottom: 18px; }
+.rp-section-label { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--slate); margin-bottom: 8px; }
+.rp-flag { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-radius: 7px; margin-bottom: 5px; font-size: 12px; cursor: pointer; transition: opacity .2s; }
+.rp-flag:hover { opacity: .8; }
+.rp-flag.crit { background: var(--red-l); color: #991B1B; }
+.rp-flag.warn { background: var(--amber-l); color: #92400E; }
+.rp-flag.miss { background: var(--mist-2); color: var(--slate); }
+.rp-flag.resolved { background: #D1FAE5; color: #065F46; text-decoration: line-through; opacity: .6; cursor: default; }
+.rp-flag-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.rp-flag.crit .rp-flag-dot { background: var(--red); }
+.rp-flag.warn .rp-flag-dot { background: var(--amber); }
+.rp-flag.miss .rp-flag-dot { background: var(--slate); }
+.rp-flag.resolved .rp-flag-dot { background: var(--teal); }
+.rp-divider { height: 1px; background: var(--border); margin: 12px 0; }
+.conf-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; font-size: 11.5px; color: var(--slate); }
+.conf-bar-track { width: 80px; height: 5px; background: var(--mist-2); border-radius: 99px; overflow: hidden; }
+.conf-bar { height: 100%; border-radius: 99px; }
+.conf-bar.high { background: var(--teal); }
+.conf-bar.med  { background: var(--amber); }
+.conf-bar.low  { background: var(--red); }
+.icd-block { background: var(--mist); border-radius: var(--r); padding: 12px 12px; margin-bottom: 8px; }
+.icd-label { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--slate); margin-bottom: 8px; }
+.icd-option { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: white; margin-bottom: 5px; cursor: pointer; transition: all .15s; }
+.icd-option:hover { border-color: var(--teal); }
+.icd-option.selected { border-color: var(--teal); background: var(--teal-l); }
+.icd-option input { margin-top: 2px; accent-color: var(--teal); flex-shrink: 0; }
+.icd-code { font-size: 12px; font-weight: 600; color: var(--ink); }
+.icd-desc { font-size: 11px; color: var(--slate); margin-top: 1px; }
+
+/* ── FOOTER BAR ───────────────────────── */
+.footer-bar {
+  border-top: 1px solid var(--border); background: var(--white);
+  padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; z-index: 10;
+}
+.wm-text { font-size: 11.5px; font-weight: 500; color: var(--slate); letter-spacing: .03em; display: flex; align-items: center; gap: 6px; }
+.wm-approved { color: var(--teal-d); }
+.footer-actions { display: flex; gap: 8px; }
+.f-btn { padding: 7px 16px; border-radius: var(--r); font-family: var(--sans); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all .2s; }
+.f-btn.ghost { border: 1px solid var(--border-s); background: white; color: var(--ink); }
+.f-btn.ghost:hover { background: var(--mist); }
+.f-btn.approve { border: none; background: var(--ink); color: white; opacity: .35; cursor: not-allowed; }
+.f-btn.approve.unlocked { opacity: 1; cursor: pointer; }
+.f-btn.approve.unlocked:hover { background: var(--ink-2); }
+.f-btn.approved { border: none; background: var(--teal); color: var(--ink); font-weight: 600; cursor: default; }
+
+/* ── SIGN MODAL ───────────────────────── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(6,14,28,.55); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: var(--r-lg); width: 400px; overflow: hidden; box-shadow: 0 32px 80px rgba(6,14,28,.25); }
+.modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); }
+.modal-title { font-family: var(--serif); font-size: 22px; font-weight: 500; color: var(--ink); }
+.modal-sub { font-size: 13px; color: var(--slate); margin-top: 3px; }
+.modal-body { padding: 20px 24px; }
+.modal-field { margin-bottom: 14px; }
+.modal-label { font-size: 11.5px; font-weight: 500; color: var(--slate); margin-bottom: 5px; }
+.modal-val { font-size: 13.5px; font-weight: 500; color: var(--ink); padding: 8px 12px; background: var(--mist); border-radius: 6px; border: 1px solid var(--border); }
+.pin-label { font-size: 11.5px; font-weight: 500; color: var(--slate); margin-bottom: 8px; }
+.pin-dots { display: flex; gap: 8px; }
+.pin-dot { width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border-s); background: white; display: flex; align-items: center; justify-content: center; font-size: 20px; color: transparent; text-shadow: 0 0 0 var(--ink); transition: all .15s; }
+.pin-dot.filled { border-color: var(--teal); background: var(--teal-l); }
+.pin-input { position: absolute; opacity: 0; pointer-events: none; }
+.pin-row { display: flex; flex-direction: column; cursor: text; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+.m-btn { padding: 9px 20px; border-radius: var(--r); font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .2s; }
+.m-btn.cancel { background: var(--mist); color: var(--slate); }
+.m-btn.cancel:hover { background: var(--mist-2); }
+.m-btn.confirm { background: var(--ink); color: white; opacity: .35; cursor: not-allowed; }
+.m-btn.confirm.ready { opacity: 1; cursor: pointer; }
+.m-btn.confirm.ready:hover { background: var(--ink-2); }
+
+/* ── AI GENERATION LOADING ──────────── */
+.ai-loading { display: none; flex-direction: column; align-items: center; padding: 60px 20px; gap: 16px; }
+.ai-loading.show { display: flex; }
+.ai-spinner { width: 48px; height: 48px; border: 3px solid var(--mist-2); border-top-color: var(--teal); border-radius: 50%; animation: spin .8s linear infinite; }
+.ai-loading-text { font-size: 14px; color: var(--slate); }
+.ai-loading-sub { font-size: 12px; color: var(--mist-2); }
+
+/* Utility */
+.hidden { display: none !important; }
+.view-toggle { display: flex; gap: 4px; }
+.vt-btn { padding: 5px 12px; font-size: 11.5px; font-weight: 500; border-radius: var(--r); border: 1px solid var(--border-s); background: white; color: var(--slate); cursor: pointer; font-family: var(--sans); transition: all .15s; }
+.vt-btn.on { background: var(--ink); border-color: var(--ink); color: white; }
+
+@media (max-width: 1000px) {
+  .right-panel { display: none; }
+}
+@media (max-width: 700px) {
+  .sidebar { display: none; }
+  :root { --right: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <a href="index.html" class="tb-logo">
+    <div class="tb-mark">
+      <svg viewBox="0 0 20 20"><path d="M10 2L4 10l6 8 6-8-6-8zm0 3l4 5-4 5.4L6 10l4-5z"/></svg>
+    </div>
+    <span class="tb-name">Aura</span>
+  </a>
+  <div class="tb-sep"></div>
+  <div class="tb-ward">
+    Ward:
+    <select>
+      <option>Medical Ward 4B — Apollo Hospitals, Chennai</option>
+      <option>Cardiac ICU — Ward 2A</option>
+      <option>Surgical Ward 3C</option>
+      <option>Paediatrics Ward 5A</option>
+    </select>
+  </div>
+  <div class="tb-spacer"></div>
+  <div class="tb-live"><div class="tb-live-dot"></div><span>Live</span></div>
+  <div class="tb-time" id="clock">—</div>
+  <div class="tb-physician">
+    <div class="tb-avatar">PN</div>
+    <div>
+      <div class="tb-doc">Dr. Priya Nair</div>
+      <div class="tb-role">Senior Resident · Internal Medicine</div>
+    </div>
+  </div>
+  <a href="index.html" class="tb-home">← Product home</a>
+</div>
+
+<!-- WORKSPACE -->
+<div class="workspace">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-header">
+      <div class="sb-label">Patient queue</div>
+      <input class="sb-search" placeholder="Search patient or MRD…">
+    </div>
+    <div class="sb-queue">
+      <div class="sb-section-label">Overdue · discharge due</div>
+      <div class="pt-card active" onclick="selectPatient(0)">
+        <div class="pt-name">Ramesh Kumar</div>
+        <div class="pt-meta">Ward 4B · Bed 12 · MRD 0042891</div>
+        <span class="pt-pill pill-crit">⚠ Critical flag</span>
+      </div>
+
+      <div class="sb-section-label" style="margin-top:8px">Pending review</div>
+      <div class="pt-card" onclick="selectPatient(1)">
+        <div class="pt-name">Lakshmi Devi</div>
+        <div class="pt-meta">Ward 2A · Bed 07 · MRD 0042876</div>
+        <span class="pt-pill pill-pend">⏳ Pending review</span>
+      </div>
+      <div class="pt-card" onclick="selectPatient(2)">
+        <div class="pt-name">Arjun Venkatesh</div>
+        <div class="pt-meta">Ward 4B · Bed 03 · MRD 0042880</div>
+        <span class="pt-pill pill-pend">⏳ Pending review</span>
+      </div>
+
+      <div class="sb-section-label" style="margin-top:8px">Draft ready</div>
+      <div class="pt-card" onclick="selectPatient(3)">
+        <div class="pt-name">Meenakshi Suresh</div>
+        <div class="pt-meta">Ward 3C · Bed 18 · MRD 0042867</div>
+        <span class="pt-pill pill-draft">Draft ready</span>
+      </div>
+
+      <div class="sb-section-label" style="margin-top:8px">Approved today</div>
+      <div class="pt-card" onclick="selectPatient(4)">
+        <div class="pt-name">Suresh Babu</div>
+        <div class="pt-meta">Ward 3C · Bed 21 · MRD 0042860</div>
+        <span class="pt-pill pill-ok">✓ Approved 10:14</span>
+      </div>
+      <div class="pt-card" onclick="selectPatient(5)">
+        <div class="pt-name">Kavitha Rajan</div>
+        <div class="pt-meta">Ward 2A · Bed 11 · MRD 0042854</div>
+        <span class="pt-pill pill-ok">✓ Approved 09:32</span>
+      </div>
+    </div>
+    <div class="sb-stats">
+      <div class="sb-stat"><div class="sb-stat-n">6</div><div class="sb-stat-l">Patients today</div></div>
+      <div class="sb-stat"><div class="sb-stat-n" style="color:var(--teal)">2</div><div class="sb-stat-l">Approved</div></div>
+      <div class="sb-stat"><div class="sb-stat-n" style="color:#FCA5A5">1</div><div class="sb-stat-l">Critical flag</div></div>
+      <div class="sb-stat"><div class="sb-stat-n">3</div><div class="sb-stat-l">Pending</div></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- Patient header -->
+    <div class="pt-header">
+      <div class="pt-header-info">
+        <div class="pt-header-name" id="pt-name">Ramesh Kumar</div>
+        <div class="pt-header-meta" id="pt-meta">62 yrs · Male · MRD 0042891 · Admitted 14 May — Discharge due 19 May 2025 · Ward 4B / Bed 12 · Dr. S. Anand (Treating)</div>
+      </div>
+      <div class="pt-header-actions">
+        <div class="view-toggle">
+          <button class="vt-btn on" onclick="switchView('draft')">Review draft</button>
+          <button class="vt-btn" onclick="switchView('patient')">Patient view</button>
+        </div>
+        <div class="status-badge status-crit" id="pt-status-badge">⚠ Critical flag</div>
+      </div>
+    </div>
+
+    <!-- Step tabs -->
+    <div class="step-tabs">
+      <div class="step-tab done" onclick="goStep(0)"><span class="step-num">✓</span>Data retrieval</div>
+      <div class="step-tab active" onclick="goStep(1)"><span class="step-num">2</span>Review draft</div>
+      <div class="step-tab" onclick="goStep(2)"><span class="step-num">3</span>Approve &amp; sign</div>
+    </div>
+
+    <!-- Panels -->
+    <div class="panels">
+
+      <!-- DRAFT PANEL -->
+      <div class="draft-panel" id="draft-view">
+
+        <!-- Critical banner -->
+        <div class="crit-banner" id="crit-banner" onclick="resolveCrit()">
+          <div class="cb-icon">🚨</div>
+          <div>
+            <div class="cb-title">Critical: Medication contraindication detected</div>
+            <div class="cb-desc">Amoxicillin 500mg TID is prescribed but the patient has a documented <strong>Penicillin allergy</strong> (EMR record, 12 Jan 2024). This must be resolved before the summary can be approved.</div>
+            <div class="cb-resolve">Click to mark as resolved and select an alternative →</div>
+          </div>
+        </div>
+
+        <!-- Section: Diagnosis -->
+        <div class="draft-section">
+          <div class="ds-header">
+            <div class="ds-title">Diagnosis</div>
+            <span class="ds-chip chip-ok">✓ Confirmed</span>
+          </div>
+          <div class="ds-body">
+            <strong>Primary:</strong> Community-acquired pneumonia &nbsp;·&nbsp; ICD-10: <strong>J18.9</strong> &nbsp;·&nbsp; ICD-11: CA40.0Z<br>
+            <strong>Secondary:</strong> Type 2 diabetes mellitus (controlled) &nbsp;·&nbsp; ICD-10: E11.9
+          </div>
+        </div>
+
+        <!-- Section: Presenting complaint -->
+        <div class="draft-section">
+          <div class="ds-header">
+            <div class="ds-title">Presenting complaint &amp; history</div>
+            <span class="ds-chip chip-ok">✓ Confirmed</span>
+          </div>
+          <div class="ds-body">
+            Patient presented with 4-day history of productive cough, high-grade fever (39.2°C), and progressive dyspnoea on exertion. Background history of T2DM for 8 years, currently on oral hypoglycaemics. Non-smoker. No recent travel history.
+          </div>
+        </div>
+
+        <!-- Section: Clinical findings -->
+        <div class="draft-section">
+          <div class="ds-header">
+            <div class="ds-title">Clinical findings on admission</div>
+            <span class="ds-chip chip-ok">✓ Confirmed</span>
+          </div>
+          <div class="ds-body">
+            <strong>Vitals:</strong> Temp 39.2°C · HR 104 bpm · BP 118/74 mmHg · SpO₂ 91% (room air) · RR 24/min<br>
+            <strong>Examination:</strong> Dullness to percussion and reduced breath sounds at right lower zone. No cyanosis. No signs of consolidation at left base.
+          </div>
+        </div>
+
+        <!-- Section: Investigations -->
+        <div class="draft-section">
+          <div class="ds-header">
+            <div class="ds-title">Investigations</div>
+            <span class="ds-chip chip-warn">⚠ Review flagged</span>
+          </div>
+          <div class="ds-body">
+            <strong>CBC:</strong> WBC <span class="f-warn" title="Elevated — source: LIS report 14 May">14.8 × 10⁹/L ↑</span> · Hb 13.2 g/dL · Platelets 220 × 10⁹/L<br>
+            <strong>CRP:</strong> <span class="f-warn" title="Markedly elevated — source: LIS report 14 May">128 mg/L ↑</span><br>
+            <strong>Chest X-ray (14 May):</strong> Right lower lobe opacity consistent with pneumonic consolidation.<br>
+            <strong>Blood culture:</strong> <span class="f-warn" title="[REVIEW: culture result still pending at time of draft — physician to confirm final result]">[REVIEW: Awaiting 48h culture result — confirm before approval]</span><br>
+            <strong>HbA1c:</strong> 7.4% (satisfactory control)
+          </div>
+        </div>
+
+        <!-- Section: Discharge medications -->
+        <div class="draft-section" id="med-section">
+          <div class="ds-header">
+            <div class="ds-title">Discharge medications</div>
+            <span class="ds-chip chip-warn" id="med-chip">⚠ Critical conflict</span>
+          </div>
+          <div class="ds-body">
+            <div class="med-row">
+              <div class="med-flag-icon" id="amox-icon">🚨</div>
+              <div>
+                <div class="med-name-w"><span id="amox-text" class="f-crit">Amoxicillin 500mg PO TID × 7 days</span></div>
+                <div class="med-detail" id="amox-note">Penicillin allergy on record — resolve critical flag above</div>
+              </div>
+            </div>
+            <div class="med-row">
+              <div class="med-flag-icon">⚠️</div>
+              <div>
+                <div class="med-name-w"><span class="f-warn" title="Dose in discharge order differs from admission medication chart — confirm with treating physician">Metformin 500mg PO BD &nbsp;·&nbsp; ongoing</span></div>
+                <div class="med-detail">Dose discrepancy vs admission order (1000mg BD) — physician to confirm</div>
+              </div>
+            </div>
+            <div class="med-row">
+              <div class="med-flag-icon">✅</div>
+              <div>
+                <div class="med-name-w">Azithromycin 500mg PO OD × 5 days</div>
+                <div class="med-detail">Source: medication order 18 May — confirmed</div>
+              </div>
+            </div>
+            <div class="med-row">
+              <div class="med-flag-icon">✅</div>
+              <div>
+                <div class="med-name-w">Paracetamol 650mg PO SOS (max 4× daily)</div>
+                <div class="med-detail">Source: medication order 18 May — confirmed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Follow-up -->
+        <div class="draft-section">
+          <div class="ds-header">
+            <div class="ds-title">Follow-up instructions</div>
+            <span class="ds-chip chip-miss">✗ Partially missing</span>
+          </div>
+          <div class="ds-body">
+            Follow-up clinic: Pulmonology OPD<br>
+            Follow-up date: <span class="f-miss" onclick="this.outerHTML='<strong>26 May 2025</strong>'" title="Click to enter date">[PHYSICIAN TO COMPLETE — click to enter date]</span><br>
+            Activity: Avoid strenuous activity for 2 weeks. Light walking permitted.<br>
+            Diet: High-protein diet encouraged. Maintain oral hydration.<br>
+            Return to emergency immediately if: high fever (&gt;38.5°C), worsening breathlessness, or chest pain.
+          </div>
+        </div>
+
+        <!-- Section: Condition at discharge -->
+        <div class="draft-section">
+          <div class="ds-header">
+            <div class="ds-title">Condition at discharge</div>
+            <span class="ds-chip chip-ok">✓ Confirmed</span>
+          </div>
+          <div class="ds-body">
+            <strong>Status:</strong> Stable · Improved<br>
+            <strong>Vitals at discharge:</strong> Temp 37.0°C · HR 84 bpm · BP 122/78 mmHg · SpO₂ 97% (room air)
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PATIENT VIEW -->
+      <div class="draft-panel hidden" id="patient-view">
+        <div class="patient-view">
+          <div class="phone-wrap">
+            <div class="phone-notch"></div>
+            <div class="phone-inner">
+              <div class="ph-header">
+                <div class="ph-hosp">Apollo Hospitals, Chennai</div>
+                <div class="ph-title">Your Visit Summary</div>
+                <div class="ph-name">Ramesh Kumar · 14–19 May 2025</div>
+              </div>
+              <div class="lang-toggle">
+                <button class="lt-btn on" onclick="setLang(this,'en')">EN</button>
+                <button class="lt-btn" onclick="setLang(this,'ta')">தமிழ்</button>
+                <button class="lt-btn" onclick="setLang(this,'hi')">हिंदी</button>
+                <button class="lt-btn" onclick="setLang(this,'kn')">ಕನ್ನಡ</button>
+              </div>
+              <div id="patient-content">
+                <div class="qa-block">
+                  <div class="qa-q">Why were you admitted?</div>
+                  <div class="qa-a">You came in with a high fever, cough, and difficulty breathing. Tests showed you had a lung infection called pneumonia in your right lung.</div>
+                </div>
+                <div class="qa-block">
+                  <div class="qa-q">What did the doctors find?</div>
+                  <div class="qa-a">Your blood tests showed signs of infection and your chest X-ray confirmed pneumonia. Your diabetes was checked and is under good control.</div>
+                </div>
+                <div class="qa-block">
+                  <div class="qa-q">How are you now?</div>
+                  <div class="qa-a">You are recovering well. Your fever has gone and your breathing has improved. Your oxygen levels are normal. You are ready to go home.</div>
+                </div>
+                <div class="med-cards">
+                  <div class="med-cards-title">💊 Your medicines at home</div>
+                  <div class="mc"><div class="mc-name">Azithromycin 500mg</div><div class="mc-dose">Once daily · after food · 5 days</div></div>
+                  <div class="mc"><div class="mc-name">Metformin 500mg</div><div class="mc-dose">Twice daily · with meals · ongoing</div></div>
+                  <div class="mc"><div class="mc-name">Paracetamol 650mg</div><div class="mc-dose">Only if needed for pain or fever · max 4 times a day</div></div>
+                </div>
+                <div class="qa-block">
+                  <div class="qa-q">When is your next appointment?</div>
+                  <div class="qa-a">Pulmonology OPD — please confirm date with your doctor. Bring this summary and your discharge prescription.</div>
+                </div>
+                <div class="alert-block">
+                  <div class="alert-title">⚠ Go to emergency immediately if:</div>
+                  <div class="alert-item">• Fever returns above 38.5°C</div>
+                  <div class="alert-item">• Breathing becomes difficult</div>
+                  <div class="alert-item">• Chest pain or tightness</div>
+                  <div class="alert-item">• Severe dizziness or confusion</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /panels -->
+
+    <!-- FOOTER BAR -->
+    <div class="footer-bar">
+      <div class="wm-text" id="wm-text">📄 DRAFT — PENDING PHYSICIAN APPROVAL</div>
+      <div class="footer-actions">
+        <button class="f-btn ghost" onclick="switchView('patient')">Patient view</button>
+        <button class="f-btn ghost" id="edit-btn" onclick="toggleEdit()">Edit</button>
+        <button class="f-btn approve" id="approve-btn" onclick="openModal()">Approve &amp; sign</button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="rp-header">
+      <div class="rp-title">Flags &amp; checks</div>
+      <div class="rp-count" id="flag-count">3 open</div>
+    </div>
+    <div class="rp-body">
+      <div class="rp-section">
+        <div class="rp-section-label">🚨 Critical (1)</div>
+        <div class="rp-flag crit" id="rp-crit" onclick="document.getElementById('crit-banner').click()">
+          <div class="rp-flag-dot"></div>
+          Amoxicillin / Penicillin allergy conflict
+        </div>
+      </div>
+      <div class="rp-section">
+        <div class="rp-section-label">⚠ Review (2)</div>
+        <div class="rp-flag warn"><div class="rp-flag-dot"></div>Metformin dose discrepancy</div>
+        <div class="rp-flag warn"><div class="rp-flag-dot"></div>Blood culture result pending</div>
+      </div>
+      <div class="rp-section">
+        <div class="rp-section-label">✗ Missing (1)</div>
+        <div class="rp-flag miss"><div class="rp-flag-dot"></div>Follow-up date not recorded</div>
+      </div>
+
+      <div class="rp-divider"></div>
+
+      <div class="rp-section">
+        <div class="rp-section-label">Source confidence</div>
+        <div class="conf-row"><span>EMR</span><div class="conf-bar-track"><div class="conf-bar high" style="width:96%"></div></div></div>
+        <div class="conf-row"><span>LIS</span><div class="conf-bar-track"><div class="conf-bar high" style="width:89%"></div></div></div>
+        <div class="conf-row"><span>RIS</span><div class="conf-bar-track"><div class="conf-bar med" style="width:72%"></div></div></div>
+        <div class="conf-row"><span>Nursing</span><div class="conf-bar-track"><div class="conf-bar high" style="width:93%"></div></div></div>
+        <div class="conf-row"><span>OT</span><div class="conf-bar-track"><div class="conf-bar high" style="width:100%"></div></div></div>
+      </div>
+
+      <div class="rp-divider"></div>
+
+      <div class="icd-block">
+        <div class="icd-label">ICD-10 — Confirm code</div>
+        <div class="icd-option selected" onclick="selectICD(this)">
+          <input type="radio" name="icd" checked>
+          <div>
+            <div class="icd-code">J18.9</div>
+            <div class="icd-desc">Pneumonia, unspecified organism</div>
+          </div>
+        </div>
+        <div class="icd-option" onclick="selectICD(this)">
+          <input type="radio" name="icd">
+          <div>
+            <div class="icd-code">J18.1</div>
+            <div class="icd-desc">Lobar pneumonia, unspecified</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /workspace -->
+
+<!-- SIGN MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Approve &amp; sign</div>
+      <div class="modal-sub">This summary will be released to the patient record and NHCX on confirmation.</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <div class="modal-label">Physician</div>
+        <div class="modal-val">Dr. Priya Nair &nbsp;·&nbsp; Senior Resident, Internal Medicine</div>
+      </div>
+      <div class="modal-field">
+        <div class="modal-label">Timestamp</div>
+        <div class="modal-val" id="modal-ts">—</div>
+      </div>
+      <div class="pin-row" onclick="document.getElementById('pin-input').focus()">
+        <div class="pin-label">Enter your 4-digit PIN to confirm</div>
+        <div class="pin-dots" id="pin-dots">
+          <div class="pin-dot" id="pd0">·</div>
+          <div class="pin-dot" id="pd1">·</div>
+          <div class="pin-dot" id="pd2">·</div>
+          <div class="pin-dot" id="pd3">·</div>
+        </div>
+        <input class="pin-input" id="pin-input" type="tel" maxlength="4" inputmode="numeric" oninput="handlePin(this.value)">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="m-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="m-btn confirm" id="confirm-btn" onclick="confirmApprove()">Release document</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Clock
+function tick() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+}
+tick(); setInterval(tick, 30000);
+
+// Patient selection
+const patients = [
+  { name: 'Ramesh Kumar', meta: '62 yrs · Male · MRD 0042891 · Admitted 14 May — Discharge due 19 May 2025 · Ward 4B / Bed 12', status: 'crit', badge: '⚠ Critical flag', badgeCls: 'status-crit' },
+  { name: 'Lakshmi Devi', meta: '55 yrs · Female · MRD 0042876 · Admitted 16 May — Discharge due 20 May 2025 · Ward 2A / Bed 07', status: 'pend', badge: '⏳ Pending review', badgeCls: 'status-badge' },
+  { name: 'Arjun Venkatesh', meta: '34 yrs · Male · MRD 0042880 · Admitted 17 May — Discharge due 20 May 2025 · Ward 4B / Bed 03', status: 'pend', badge: '⏳ Pending review', badgeCls: 'status-badge' },
+  { name: 'Meenakshi Suresh', meta: '48 yrs · Female · MRD 0042867 · Admitted 15 May — Discharge due 19 May 2025 · Ward 3C / Bed 18', status: 'draft', badge: 'Draft ready', badgeCls: 'status-badge' },
+  { name: 'Suresh Babu', meta: '67 yrs · Male · MRD 0042860 · Admitted 13 May — Discharged 18 May 2025 · Ward 3C / Bed 21', status: 'ok', badge: '✓ Approved 10:14', badgeCls: 'status-badge' },
+  { name: 'Kavitha Rajan', meta: '41 yrs · Female · MRD 0042854 · Admitted 14 May — Discharged 18 May 2025 · Ward 2A / Bed 11', status: 'ok', badge: '✓ Approved 09:32', badgeCls: 'status-badge' },
+];
+
+function selectPatient(i) {
+  document.querySelectorAll('.pt-card').forEach((c, j) => c.classList.toggle('active', j === i));
+  const p = patients[i];
+  document.getElementById('pt-name').textContent = p.name;
+  document.getElementById('pt-meta').textContent = p.meta;
+  const badge = document.getElementById('pt-status-badge');
+  badge.textContent = p.badge;
+  badge.className = 'status-badge ' + (p.status === 'crit' ? 'status-crit' : '');
+}
+
+// View toggle
+function switchView(v) {
+  const draft = document.getElementById('draft-view');
+  const patient = document.getElementById('patient-view');
+  const btns = document.querySelectorAll('.vt-btn');
+  if (v === 'draft') {
+    draft.classList.remove('hidden'); patient.classList.add('hidden');
+    btns[0].classList.add('on'); btns[1].classList.remove('on');
+  } else {
+    patient.classList.remove('hidden'); draft.classList.add('hidden');
+    btns[1].classList.add('on'); btns[0].classList.remove('on');
+  }
+}
+
+// Critical flag resolution
+let critResolved = false;
+function resolveCrit() {
+  if (critResolved) return;
+  critResolved = true;
+  const banner = document.getElementById('crit-banner');
+  banner.style.background = '#D1FAE5';
+  banner.style.border = '1px solid #A7F3D0';
+  banner.querySelector('.cb-icon').textContent = '✅';
+  banner.querySelector('.cb-title').textContent = 'Critical resolved — alternative antibiotic confirmed';
+  banner.querySelector('.cb-title').style.color = '#065F46';
+  banner.querySelector('.cb-desc').textContent = 'Amoxicillin removed. Azithromycin 500mg OD × 7 days selected as penicillin-safe alternative. Allergy alert documented in audit log.';
+  banner.querySelector('.cb-desc').style.color = '#047857';
+  banner.querySelector('.cb-resolve').style.display = 'none';
+
+  document.getElementById('amox-icon').textContent = '✅';
+  const amoxText = document.getElementById('amox-text');
+  amoxText.className = 'f-resolved';
+  amoxText.textContent = 'Azithromycin 500mg PO OD × 7 days [substituted — penicillin allergy documented]';
+  document.getElementById('amox-note').textContent = 'Penicillin allergy flag resolved — alternative selected by Dr. Priya Nair';
+  document.getElementById('med-chip').className = 'ds-chip chip-ok';
+  document.getElementById('med-chip').textContent = '✓ Conflict resolved';
+
+  const rpCrit = document.getElementById('rp-crit');
+  rpCrit.className = 'rp-flag resolved';
+  rpCrit.textContent = '✓ Amoxicillin replaced — resolved';
+  document.getElementById('flag-count').textContent = '2 open · 1 resolved';
+
+  const approveBtn = document.getElementById('approve-btn');
+  approveBtn.classList.add('unlocked');
+  const badge = document.getElementById('pt-status-badge');
+  badge.textContent = '⚠ Review flags';
+  badge.className = 'status-badge';
+}
+
+// Modal
+function openModal() {
+  if (!document.getElementById('approve-btn').classList.contains('unlocked')) return;
+  document.getElementById('modal-ts').textContent = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('pin-input').value = '';
+  updatePinDots('');
+  setTimeout(() => document.getElementById('pin-input').focus(), 100);
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+function handlePin(v) {
+  v = v.replace(/\D/g, '').slice(0, 4);
+  document.getElementById('pin-input').value = v;
+  updatePinDots(v);
+  document.getElementById('confirm-btn').classList.toggle('ready', v.length === 4);
+}
+function updatePinDots(v) {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('pd' + i);
+    d.classList.toggle('filled', i < v.length);
+    d.textContent = i < v.length ? '●' : '·';
+  }
+}
+function confirmApprove() {
+  if (!document.getElementById('confirm-btn').classList.contains('ready')) return;
+  closeModal();
+  const ab = document.getElementById('approve-btn');
+  ab.className = 'f-btn approved';
+  ab.textContent = '✓ Approved & signed';
+
+  const wm = document.getElementById('wm-text');
+  const ts = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  wm.innerHTML = '✓ APPROVED — Dr. Priya Nair · ' + ts + ' · Audit log #AUR-' + Math.floor(Math.random()*90000+10000);
+  wm.className = 'wm-text wm-approved';
+
+  const badge = document.getElementById('pt-status-badge');
+  badge.textContent = '✓ Approved';
+  badge.className = 'status-badge';
+  badge.style.background = 'var(--teal-l)';
+  badge.style.color = 'var(--teal-d)';
+  badge.style.border = '1px solid rgba(10,191,163,.4)';
+
+  document.querySelectorAll('.pt-card')[0].querySelector('.pt-pill').className = 'pt-pill pill-ok';
+  document.querySelectorAll('.pt-card')[0].querySelector('.pt-pill').textContent = '✓ Approved';
+}
+
+// ICD selection
+function selectICD(el) {
+  document.querySelectorAll('.icd-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+}
+
+// Language toggle
+const translations = {
+  en: {
+    q1: 'Why were you admitted?', a1: 'You came in with a high fever, cough, and difficulty breathing. Tests showed you had a lung infection called pneumonia in your right lung.',
+    q2: 'What did the doctors find?', a2: 'Your blood tests showed signs of infection and your chest X-ray confirmed pneumonia. Your diabetes was checked and is under good control.',
+    q3: 'How are you now?', a3: 'You are recovering well. Your fever has gone and your breathing has improved. Your oxygen levels are normal. You are ready to go home.',
+    q4: 'When is your next appointment?', a4: 'Pulmonology OPD — please confirm date with your doctor. Bring this summary and your discharge prescription.',
+  },
+  ta: {
+    q1: 'நீங்கள் ஏன் அனுமதிக்கப்பட்டீர்கள்?', a1: 'அதிக காய்ச்சல், இருமல் மற்றும் சுவாசிக்கக் கஷ்டம் உடன் வந்தீர்கள். உங்கள் வலது நுரையீரலில் நிமோனியா என்ற நோய்த்தொற்று இருப்பது சோதனைகளில் தெரிந்தது.',
+    q2: 'மருத்துவர்கள் என்ன கண்டனர்?', a2: 'உங்கள் இரத்தப் பரிசோதனைகள் தொற்று அறிகுறிகளை காட்டின. மார்பு X-ray நிமோனியாவை உறுதிப்படுத்தியது. உங்கள் நீரிழிவு கட்டுப்பாட்டில் உள்ளது.',
+    q3: 'இப்போது நீங்கள் எப்படி இருக்கிறீர்கள்?', a3: 'நீங்கள் நன்றாக குணமடைந்து வருகிறீர்கள். காய்ச்சல் குறைந்துவிட்டது, சுவாசம் சரியாகிவிட்டது. வீடு திரும்பலாம்.',
+    q4: 'அடுத்த சந்திப்பு எப்போது?', a4: 'நுரையீரல் OPD — தேதியை மருத்துவரிடம் உறுதி செய்யவும். இந்தச் சுருக்கத்தையும் மருந்துச் சீட்டையும் கொண்டு வாருங்கள்.',
+  },
+  hi: {
+    q1: 'आपको क्यों भर्ती किया गया था?', a1: 'आप तेज बुखार, खांसी और सांस लेने में कठिनाई के साथ आए थे। जांच में पता चला कि आपके दाहिने फेफड़े में निमोनिया का संक्रमण है।',
+    q2: 'डॉक्टरों ने क्या पाया?', a2: 'आपकी रक्त जांच में संक्रमण के संकेत मिले और छाती के एक्स-रे से निमोनिया की पुष्टि हुई। आपकी मधुमेह नियंत्रण में है।',
+    q3: 'अब आप कैसा महसूस कर रहे हैं?', a3: 'आप अच्छी तरह से ठीक हो रहे हैं। बुखार चला गया है और सांस लेना आसान हो गया है। आप घर जाने के लिए तैयार हैं।',
+    q4: 'अगली अपॉइंटमेंट कब है?', a4: 'पल्मोनोलॉजी OPD — कृपया अपने डॉक्टर से तारीख की पुष्टि करें। यह सारांश और प्रिस्क्रिप्शन साथ लाएं।',
+  },
+  kn: {
+    q1: 'ನಿಮ್ಮನ್ನು ಏಕೆ ದಾಖಲಿಸಲಾಯಿತು?', a1: 'ತೀವ್ರ ಜ್ವರ, ಕೆಮ್ಮು ಮತ್ತು ಉಸಿರಾಟದ ತೊಂದರೆಯೊಂದಿಗೆ ಬಂದಿದ್ದೀರಿ. ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ನಿಮ್ಮ ಬಲ ಶ್ವಾಸಕೋಶದಲ್ಲಿ ನ್ಯುಮೋನಿಯಾ ಸೋಂಕು ತಿಳಿಯಿತು.',
+    q2: 'ವೈದ್ಯರು ಏನು ಕಂಡುಕೊಂಡರು?', a2: 'ರಕ್ತ ಪರೀಕ್ಷೆಗಳಲ್ಲಿ ಸೋಂಕಿನ ಚಿಹ್ನೆಗಳು ಕಂಡವು. ಎದೆಯ X-ರೇ ನ್ಯುಮೋನಿಯಾವನ್ನು ಖಚಿತಪಡಿಸಿತು. ಮಧುಮೇಹ ನಿಯಂತ್ರಣದಲ್ಲಿದೆ.',
+    q3: 'ಈಗ ನೀವು ಹೇಗಿದ್ದೀರಿ?', a3: 'ನೀವು ಚೆನ್ನಾಗಿ ಗುಣಮುಖರಾಗುತ್ತಿದ್ದೀರಿ. ಜ್ವರ ಕಡಿಮೆಯಾಗಿದೆ ಮತ್ತು ಉಸಿರಾಟ ಸರಿಯಾಗಿದೆ. ಮನೆಗೆ ಹೋಗಲು ಸಿದ್ಧರಾಗಿದ್ದೀರಿ.',
+    q4: 'ಮುಂದಿನ ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್ ಯಾವಾಗ?', a4: 'ಶ್ವಾಸಕೋಶ OPD — ದಿನಾಂಕ ದೃಢೀಕರಿಸಲು ವೈದ್ಯರನ್ನು ಕೇಳಿ. ಈ ಸಾರಾಂಶ ಮತ್ತು ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ತಂದು ಬನ್ನಿ.',
+  }
+};
+
+function setLang(btn, lang) {
+  document.querySelectorAll('.lt-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  const t = translations[lang];
+  const content = document.getElementById('patient-content');
+  const blocks = content.querySelectorAll('.qa-block');
+  if (blocks[0]) { blocks[0].querySelector('.qa-q').textContent = t.q1; blocks[0].querySelector('.qa-a').textContent = t.a1; }
+  if (blocks[1]) { blocks[1].querySelector('.qa-q').textContent = t.q2; blocks[1].querySelector('.qa-a').textContent = t.a2; }
+  if (blocks[2]) { blocks[2].querySelector('.qa-q').textContent = t.q3; blocks[2].querySelector('.qa-a').textContent = t.a3; }
+  if (blocks[3]) { blocks[3].querySelector('.qa-q').textContent = t.q4; blocks[3].querySelector('.qa-a').textContent = t.a4; }
+}
+
+// Edit toggle
+let editMode = false;
+function toggleEdit() {
+  editMode = !editMode;
+  document.getElementById('edit-btn').textContent = editMode ? 'Done editing' : 'Edit';
+  document.querySelectorAll('.ds-body').forEach(b => b.setAttribute('contenteditable', editMode ? 'true' : 'false'));
+  document.querySelectorAll('.ds-body').forEach(b => { b.style.outline = editMode ? '1.5px dashed var(--teal)' : 'none'; b.style.borderRadius = '4px'; b.style.padding = editMode ? '4px' : '0'; });
+}
+
+// Close modal on overlay click
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>

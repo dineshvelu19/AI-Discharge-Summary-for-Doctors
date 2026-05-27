@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "AURA Discharge Cockpit",
+  "version": "1.0.0",
+  "description": "Voice-enabled clinical AI discharge summary generator. Optimized for hospital EMR side-by-side charting.",
+  "permissions": [
+    "sidePanel",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "action": {
+    "default_title": "Open AURA Cockpit"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

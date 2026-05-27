@@ -1,0 +1,15 @@
+# Antigravity local caches and runtime logs
+.antigravity/cache/
+.antigravity/logs/
+*.local.json
+
+# Standard project exclusions (adjust based on your language stack)
+node_modules/
+__pycache__/
+.env
+dist/
+build/
+.next/
+web/.next/
+web/node_modules/
+supabase/.temp/

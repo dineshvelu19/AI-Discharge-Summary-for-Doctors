@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickDischarge — Qtv Physician Review Cockpit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Supabase CDN (Vanilla JS Integration) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="light-theme">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <a href="index.html" class="tb-logo">
+      <div class="tb-mark">
+        <svg viewBox="0 0 20 20"><path d="M10 2L4 10l6 8 6-8-6-8zm0 3l4 5-4 5.4L6 10l4-5z"/></svg>
+      </div>
+      <span class="tb-name">QuickDischarge</span>
+    </a>
+    <div class="tb-sep"></div>
+    <div class="tb-ward">
+      Ward:
+      <select id="ward-selector">
+        <option>Medical Ward 4B — Apollo Hospitals, Chennai</option>
+        <option>Cardiac ICU — Ward 2A</option>
+        <option>Surgical Ward 3C</option>
+        <option>Paediatrics Ward 5A</option>
+      </select>
+    </div>
+    <div class="tb-spacer"></div>
+    
+    <!-- Light/Dark theme toggle slider -->
+    <div class="tb-theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark Theme">
+      <div class="tb-toggle-pill">☀️</div>
+    </div>
+    
+    <div class="tb-live"><div class="tb-live-dot"></div><span>Live</span></div>
+    <div class="tb-time" id="clock">—</div>
+    <div class="tb-physician">
+      <div class="tb-avatar">PN</div>
+      <div>
+        <div class="tb-doc">Dr. Priya Nair</div>
+        <div class="tb-role">Senior Resident · Internal Medicine</div>
+      </div>
+    </div>
+    <a href="index.html" class="tb-home">← Product home</a>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div class="workspace">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sb-header">
+        <div class="sb-label">Patient queue</div>
+        <input class="sb-search" id="queue-search" placeholder="Search patient or MRD…" oninput="filterQueue(this.value)">
+      </div>
+      <div class="sb-queue" id="patient-queue-list">
+        <!-- Populated dynamically by app.js -->
+      </div>
+      
+      <div class="sb-stats">
+        <div class="sb-stat"><div class="sb-stat-n" id="stat-total">6</div><div class="sb-stat-l">Patients today</div></div>
+        <div class="sb-stat"><div class="sb-stat-n" style="color:var(--teal)" id="stat-approved">2</div><div class="sb-stat-l">Approved</div></div>
+        <div class="sb-stat"><div class="sb-stat-n" style="color:#FCA5A5" id="stat-critical">1</div><div class="sb-stat-l">Critical flag</div></div>
+        <div class="sb-stat"><div class="sb-stat-n" id="stat-pending">3</div><div class="sb-stat-l">Pending</div></div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- Patient header -->
+      <div class="pt-header">
+        <div class="pt-header-info">
+          <div class="pt-header-name" id="pt-name">Ramesh Kumar</div>
+          <div class="pt-header-meta" id="pt-meta">62 yrs · Male · MRD 0042891 · Admitted 14 May — Discharge due 19 May 2025 · Ward 4B / Bed 12</div>
+        </div>
+        <div class="pt-header-actions">
+          <div class="view-toggle">
+            <button class="vt-btn on" id="vt-btn-draft" onclick="switchView('draft')">Review draft</button>
+            <button class="vt-btn" id="vt-btn-patient" onclick="switchView('patient')">Patient view</button>
+          </div>
+          <div class="status-badge status-crit" id="pt-status-badge">⚠ Critical flag</div>
+        </div>
+      </div>
+
+      <!-- Step tabs -->
+      <div class="step-tabs">
+        <div class="step-tab active" id="st-tab-0" onclick="goStep(0)"><span class="step-num">1</span>Data retrieval</div>
+        <div class="step-tab" id="st-tab-1" onclick="goStep(1)"><span class="step-num">2</span>Review draft</div>
+        <div class="step-tab" id="st-tab-2" onclick="goStep(2)"><span class="step-num">3</span>Approve &amp; sign</div>
+      </div>
+
+      <!-- Panels -->
+      <div class="panels">
+
+        <!-- STEP 1: DATA RETRIEVAL SCREEN -->
+        <div class="draft-panel" id="step-panel-retrieval">
+          <div class="retrieval-screen">
+            <div class="ret-title">Verify Clinical Intake &amp; Dictate</div>
+            <div class="ret-sub">Aura syncs records from inpatient databases. Dictate bedside findings to structure the discharge draft.</div>
+            
+            <!-- EMR Scraper block -->
+            <div class="scraper-box">
+              <div class="scraper-title-row">
+                <h3 class="scraper-h3">Connected Clinical Systems</h3>
+                <button class="scraper-import-btn" id="btn-import-emr" onclick="simulateEMRScrape()">📥 Import EMR Records</button>
+              </div>
+              
+              <div class="ret-source" id="source-emr">
+                <div class="ret-icon blue">🏥</div>
+                <div class="ret-name">
+                  <div>Electronic Medical Record (EMR)</div>
+                  <div class="ret-sub2" id="source-emr-sub">Intake history, demographics, clinical course</div>
+                </div>
+                <div class="ret-count" id="source-emr-count">Pending</div>
+                <div class="ret-status loading" id="source-emr-status"><div class="spinner hidden"></div><span>Ready</span></div>
+              </div>
+
+              <div class="ret-source" id="source-lis">
+                <div class="ret-icon teal">🧪</div>
+                <div class="ret-name">
+                  <div>Laboratory Information System (LIS)</div>
+                  <div class="ret-sub2" id="source-lis-sub">Complete blood count, cultures, blood gases</div>
+                </div>
+                <div class="ret-count" id="source-lis-count">Pending</div>
+                <div class="ret-status loading" id="source-lis-status"><div class="spinner hidden"></div><span>Ready</span></div>
+              </div>
+
+              <div class="ret-source" id="source-ris">
+                <div class="ret-icon amber">🩻</div>
+                <div class="ret-name">
+                  <div>Radiology Information System (RIS)</div>
+                  <div class="ret-sub2" id="source-ris-sub">Chest X-ray reports, CT angiography, ultrasound</div>
+                </div>
+                <div class="ret-count" id="source-ris-count">Pending</div>
+                <div class="ret-status loading" id="source-ris-status"><div class="spinner hidden"></div><span>Ready</span></div>
+              </div>
+
+              <div class="ret-source" id="source-nursing">
+                <div class="ret-icon purple">📋</div>
+                <div class="ret-name">
+                  <div>Nursing Flowsheets &amp; OT Notes</div>
+                  <div class="ret-sub2" id="source-nursing-sub">Vitals logs, post-op vitals, active pain levels</div>
+                </div>
+                <div class="ret-count" id="source-nursing-count">Pending</div>
+                <div class="ret-status loading" id="source-nursing-status"><div class="spinner hidden"></div><span>Ready</span></div>
+              </div>
+            </div>
+
+            <!-- Bedside voice dictation block -->
+            <div class="dictation-box">
+              <div class="dictation-header">
+                <h3 class="scraper-h3">Bedside Physician Dictation / Notes</h3>
+                <button class="mic-pill-btn" id="mic-btn" onclick="toggleDictation()">
+                  <div class="dictation-status-dot" id="dictation-status"></div>
+                  <span id="mic-text">Dictate notes</span>
+                </button>
+              </div>
+              <p class="section-instruction-clean">Speak bedside observations or paste structured handoff. Aura builds these directly into the clinical timeline.</p>
+              <div class="dictation-wrapper">
+                <textarea class="dictation-textarea" id="clinical-raw-notes" placeholder="E.g., 62yo male admitted for CAP, treated with IV antibiotics, now stable. Allergy Penicillin hives. Aspirin 81mg PO daily..."></textarea>
+                <div class="voice-wave-container hidden" id="voice-wave">
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="ret-cta-row">
+              <span class="section-instruction-clean" style="margin-bottom:0">Double-Engine AI analyzes safety checklists and codes before draft review.</span>
+              <button class="btn-gen" id="btn-gen-ai" onclick="generateAISummary()">⚡ Generate AI Summary</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: REVIEW DRAFT VIEW -->
+        <div class="draft-panel hidden" id="step-panel-review">
+          
+          <!-- Critical warning banner -->
+          <div class="crit-banner" id="crit-banner" onclick="resolveCrit()">
+            <div class="cb-icon">🚨</div>
+            <div>
+              <div class="cb-title">Critical: Medication contraindication detected</div>
+              <div class="cb-desc" id="crit-banner-desc">Amoxicillin PO TID is active, but patient has documented Penicillin allergy. Resolve immediately.</div>
+              <div class="cb-resolve" id="crit-banner-resolve">Click to mark as resolved and substitute a penicillin-safe alternative →</div>
+            </div>
+          </div>
+
+          <!-- Section: Diagnosis -->
+          <div class="draft-section">
+            <div class="ds-header">
+              <div class="ds-title">Diagnosis &amp; Codes</div>
+              <span class="ds-chip chip-ok">✓ Confirmed</span>
+            </div>
+            <div class="ds-body" id="draft-diagnosis" style="white-space: pre-line;">
+              Primary: Community-acquired pneumonia · ICD-10: J18.9
+              Secondary: Type 2 diabetes mellitus · ICD-10: E11.9
+            </div>
+          </div>
+
+          <!-- Section: Presenting complaint -->
+          <div class="draft-section">
+            <div class="ds-header">
+              <div class="ds-title">Presenting complaint &amp; history</div>
+              <span class="ds-chip chip-ok">✓ Confirmed</span>
+            </div>
+            <div class="ds-body" id="draft-chief-complaint" style="white-space: pre-line;">
+              Patient presented with productive cough, high-grade fever, and progressive dyspnoea. History of T2DM.
+            </div>
+          </div>
+
+          <!-- Section: Clinical findings -->
+          <div class="draft-section">
+            <div class="ds-header">
+              <div class="ds-title">Clinical findings on admission</div>
+              <span class="ds-chip chip-ok">✓ Confirmed</span>
+            </div>
+            <div class="ds-body" id="draft-clinical-findings" style="white-space: pre-line;">
+              Vitals: Temp 39.2°C · HR 104 bpm · BP 118/74 mmHg · SpO₂ 91% (room air) · RR 24/min
+              Chest Examination: Reduced breath sounds and dullness to percussion at right base.
+            </div>
+          </div>
+
+          <!-- Section: Investigations -->
+          <div class="draft-section">
+            <div class="ds-header">
+              <div class="ds-title">Investigations</div>
+              <span class="ds-chip chip-warn" id="labs-chip">⚠ Review flagged</span>
+            </div>
+            <div class="ds-body" id="draft-investigations" style="white-space: pre-line;">
+              CBC: WBC 14.8 × 10⁹/L · Hb 13.2 g/dL
+              CRP: 128 mg/L
+              Blood culture: Awaiting final 48h result
+            </div>
+          </div>
+
+          <!-- Section: Medications -->
+          <div class="draft-section" id="med-section">
+            <div class="ds-header">
+              <div class="ds-title">Discharge Medications</div>
+              <span class="ds-chip chip-warn" id="med-chip">⚠ Active Warning</span>
+            </div>
+            <div class="ds-body" id="medications-list">
+              <!-- Populated dynamically by app.js -->
+            </div>
+
+            <!-- Integrated Medication Planner -->
+            <div class="med-planner-wrapper">
+              <div class="med-planner-title">✏ Add Medication Order</div>
+              <div class="med-planner-row">
+                <div class="med-planner-input-w1">
+                  <input class="med-planner-input" id="med-name" placeholder="Aspirin 81mg PO OD" list="common-drugs-autocomplete">
+                  <datalist id="common-drugs-autocomplete">
+                    <option value="Aspirin 81mg PO OD">
+                    <option value="Clopidogrel 75mg PO OD">
+                    <option value="Atorvastatin 80mg PO OD">
+                    <option value="Metformin 500mg PO BD">
+                    <option value="Azithromycin 500mg PO OD">
+                    <option value="Insulin Glargine 10 units SC">
+                    <option value="Insulin Lispro 4 units mealtime">
+                    <option value="Paracetamol 650mg PO SOS">
+                  </datalist>
+                </div>
+                <div class="med-planner-input-w2">
+                  <input class="med-planner-input" id="med-instruction" placeholder="Take daily in the morning with food">
+                </div>
+                <button class="med-add-btn" onclick="addMedication()">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Follow-up -->
+          <div class="draft-section">
+            <div class="ds-header">
+              <div class="ds-title">Follow-up &amp; Advice</div>
+              <span class="ds-chip chip-miss" id="followup-chip">✗ Partially missing</span>
+            </div>
+            <div class="ds-body" id="draft-followup">
+              Clinic: Pulmonology OPD<br>
+              Follow-up Date: <span class="f-miss" id="followup-date-missing" onclick="resolveMissingDate()">[PHYSICIAN TO COMPLETE — click to enter date]</span><br>
+              Diet: High protein, stay hydrated.<br>
+              Emergency warning signs: High fever, breathing difficulty, chest pain.
+            </div>
+          </div>
+
+          <!-- Section: Condition at discharge -->
+          <div class="draft-section">
+            <div class="ds-header">
+              <div class="ds-title">Condition at discharge</div>
+              <span class="ds-chip chip-ok">✓ Confirmed</span>
+            </div>
+            <div class="ds-body" id="draft-condition" style="white-space: pre-line;">
+              Status: Stable · Improved
+              Vitals: Temp 37.0°C · HR 84 bpm · BP 122/78 mmHg · SpO₂ 97% on room air
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: APPROVE & SIGN SCREEN -->
+        <div class="draft-panel hidden" id="step-panel-approve">
+          <div class="retrieval-screen" style="max-width:550px">
+            <div class="ret-title" style="text-align:center">Summary Final Certification</div>
+            <div class="ret-sub" style="text-align:center; margin-bottom: 20px;">Review final structured data. Certification unlocks secure release to NHCX &amp; patient records.</div>
+            
+            <div class="scraper-box" style="display:flex; flex-direction:column; gap:12px">
+              <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border); padding-bottom:8px">
+                <span style="font-weight:600">Patient Name:</span>
+                <span id="approve-summary-name">Ramesh Kumar</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border); padding-bottom:8px">
+                <span style="font-weight:600">MRN / IP Number:</span>
+                <span id="approve-summary-mrn">MRN-0042891</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border); padding-bottom:8px">
+                <span style="font-weight:600">Primary Diagnosis:</span>
+                <span id="approve-summary-diagnosis">Community-acquired pneumonia</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; border-bottom: 1px solid var(--border); padding-bottom:8px">
+                <span style="font-weight:600">Prescribed Medications:</span>
+                <span id="approve-summary-meds">3 drugs ordered</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding-bottom:4px">
+                <span style="font-weight:600">NYU Gate Safety Score:</span>
+                <span style="color:var(--teal); font-weight:700" id="approve-summary-safety">100% Passed</span>
+              </div>
+            </div>
+
+            <div class="dictation-box" style="background:#FFFDF5; border-color:#FCD34D; display:flex; flex-direction:row; gap:12px; align-items:flex-start">
+              <div style="font-size:18px">🛡️</div>
+              <div style="font-size:12.5px; color:#92400E; line-height:1.6">
+                <strong>ABDM / NHCX Security Notice:</strong> Pressing "Approve &amp; sign" prompts for numerical signature PIN confirmation. Signing logs an encrypted block onto the audit trails, transmits data to patient's MyCare app, and formats secure insurer submits.
+              </div>
+            </div>
+            
+            <div style="display:flex; justify-content:center; margin-top:20px">
+              <button class="btn-gen" style="background:var(--teal); color:var(--ink-2); font-size:14px; padding:12px 32px" id="approve-sign-btn-step3" onclick="openModal()" disabled>✍ Confirm Approval &amp; Sign</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- THE SIMULATED SMARTPHONE CHASSIS PORTAL (Patient View Toggle) -->
+        <div class="draft-panel hidden" id="patient-view-wrap">
+          <div class="patient-view">
+            <div class="phone-wrap">
+              <div class="phone-notch"></div>
+              <div class="phone-inner">
+                <div class="ph-header">
+                  <div class="ph-hosp">Apollo Hospitals, Chennai</div>
+                  <div class="ph-title">Your Visit Summary</div>
+                  <div class="ph-name" id="portal-patient-name">Ramesh Kumar</div>
+                </div>
+                <div class="lang-toggle">
+                  <button class="lt-btn on" id="lang-btn-en" onclick="setPortalLang('en')">EN</button>
+                  <button class="lt-btn" id="lang-btn-ta" onclick="setPortalLang('ta')">தமிழ்</button>
+                  <button class="lt-btn" id="lang-btn-hi" onclick="setPortalLang('hi')">हिंदी</button>
+                  <button class="lt-btn" id="lang-btn-kn" onclick="setPortalLang('kn')">ಕನ್ನಡ</button>
+                  <button class="lt-btn" id="lang-btn-es" onclick="setPortalLang('es')">ES (Spanish)</button>
+                </div>
+                <div id="patient-content">
+                  <div class="qa-block">
+                    <div class="qa-q" id="qa-q1">Why were you admitted?</div>
+                    <div class="qa-a" id="qa-a1" contenteditable="false">You came in with high fever, cough, and difficulty breathing. Tests showed pneumonia.</div>
+                  </div>
+                  <div class="qa-block">
+                    <div class="qa-q" id="qa-q2">What treatments did you receive?</div>
+                    <div class="qa-a" id="qa-a2" contenteditable="false">You received intravenous antibiotics, breathing therapies, and supportive fluids.</div>
+                  </div>
+                  <div class="qa-block">
+                    <div class="qa-q" id="qa-q3">How are you now?</div>
+                    <div class="qa-a" id="qa-a3" contenteditable="false">Your lungs have cleared, fever resolved, and you are ready to recover at home.</div>
+                  </div>
+                  <div class="med-cards">
+                    <div class="med-cards-title">💊 Your medicines at home</div>
+                    <ul class="patient-med-checklist" id="patient-med-checklist-ul" style="list-style:none">
+                      <!-- Populated dynamically -->
+                    </ul>
+                  </div>
+                  <div class="qa-block">
+                    <div class="qa-q" id="qa-q4">When is your next appointment?</div>
+                    <div class="qa-a" id="qa-a4" contenteditable="false">Clinic checkup scheduled with Pulmonology OPD — date pending doctor entry.</div>
+                  </div>
+                  <div class="alert-block" id="portal-warnings-card">
+                    <div class="alert-title" id="qa-w-title">⚠ Go to emergency immediately if:</div>
+                    <div class="alert-item" id="qa-w-i1">• Fever returns above 38.5°C</div>
+                    <div class="alert-item" id="qa-w-i2">• Breathing becomes difficult or fast</div>
+                    <div class="alert-item" id="qa-w-i3">• Chest pain or dizziness occurs</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /panels -->
+
+      <!-- FOOTER BAR -->
+      <div class="footer-bar">
+        <div class="wm-text" id="wm-text">📄 DRAFT — PENDING PHYSICIAN APPROVAL</div>
+        <div class="footer-actions">
+          <button class="f-btn ghost" id="edit-btn" onclick="toggleEdit()">Edit Draft</button>
+          <button class="f-btn approve" id="approve-btn" onclick="openModal()">Approve &amp; sign</button>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      <div class="rp-header">
+        <div class="rp-title">Gated Safety &amp; Trust</div>
+        <div class="rp-count" id="flag-count">2 open</div>
+      </div>
+      <div class="rp-body">
+        
+        <!-- Live safety score ring gauge -->
+        <div class="rp-safety-ring-block">
+          <div class="rp-ring-wrap">
+            <svg class="circular-gauge" width="68" height="68" viewBox="0 0 68 68">
+              <circle class="gauge-background" cx="34" cy="34" r="28"></circle>
+              <circle class="gauge-fill" id="safety-progress-circle" cx="34" cy="34" r="28"></circle>
+            </svg>
+            <div class="rp-ring-text" id="safety-score-value">100%</div>
+          </div>
+          <div class="rp-safety-info">
+            <div class="rp-safety-title">Safety Check</div>
+            <div class="rp-safety-desc" id="safety-score-desc">Double-Checked Compliance</div>
+            <div style="font-size: 8px; color: var(--slate); margin-top: 3.5px; cursor: help; border-bottom: 1.5px dashed var(--border-s); display: inline-block;" title="Safety audit rules are governed by the automated medication reconciliation protocol (JAMA Network Open 2024).">JAMA 2024 Protocol disclaimer</div>
+          </div>
+        </div>
+
+        <div class="rp-section">
+          <div class="rp-section-label">🚨 Critical Conflicts</div>
+          <div id="rp-critical-flags-container">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+        <div class="rp-section">
+          <div class="rp-section-label">⚠ Guideline Warnings</div>
+          <div id="rp-warning-flags-container">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+        <div class="rp-section">
+          <div class="rp-section-label">✗ Missing Information</div>
+          <div id="rp-missing-flags-container">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div class="rp-divider"></div>
+
+        <div class="rp-section">
+          <div class="rp-section-label">Data Source Trust</div>
+          <div class="conf-row"><span>EMR Records</span><div class="conf-bar-track"><div class="conf-bar high" style="width:96%"></div></div></div>
+          <div class="conf-row"><span>Lab Reports</span><div class="conf-bar-track"><div class="conf-bar high" style="width:89%"></div></div></div>
+          <div class="conf-row"><span>Radiology</span><div class="conf-bar-track"><div class="conf-bar med" style="width:72%"></div></div></div>
+          <div class="conf-row"><span>Nursing logs</span><div class="conf-bar-track"><div class="conf-bar high" style="width:93%"></div></div></div>
+        </div>
+
+        <div class="rp-divider"></div>
+
+        <div class="icd-block">
+          <div class="icd-label">ICD-10 Code Confirmation</div>
+          <div class="icd-option selected" id="icd-opt-0" onclick="selectICD(0)">
+            <input type="radio" id="icd-radio-0" name="icd" checked>
+            <div>
+              <div class="icd-code" id="icd-code-0">J18.9</div>
+              <div class="icd-desc" id="icd-desc-0">Pneumonia, unspecified organism</div>
+            </div>
+          </div>
+          <div class="icd-option" id="icd-opt-1" onclick="selectICD(1)">
+            <input type="radio" id="icd-radio-1" name="icd">
+            <div>
+              <div class="icd-code" id="icd-code-1">J18.1</div>
+              <div class="icd-desc" id="icd-desc-1">Lobar pneumonia, unspecified</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rp-divider"></div>
+
+        <div class="rp-section">
+          <div class="rp-section-label" style="display:flex; align-items:center; gap:4px">📜 Secure Audit Trail Log</div>
+          <div class="rp-audit-log" id="rp-audit-log-feed">
+            <!-- Dynamic logs generated by app.js -->
+          </div>
+        </div>
+
+        <div class="rp-divider"></div>
+        
+        <div class="rp-actions-row">
+          <button class="rp-btn" id="btn-copy" onclick="copyPatientText()">📋 Copy Q&amp;A summary</button>
+          <button class="rp-btn" id="btn-push" onclick="pushToPortal()">🚀 Push to MyChart</button>
+          <button class="rp-btn" id="btn-print" onclick="window.print()">🖨️ Print paper draft</button>
+          <button class="rp-btn" id="btn-settings-toggle" onclick="openSettingsModal()">⚙️ Gemini config key</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /workspace -->
+
+  <!-- SIGN MODAL -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Approve &amp; sign</div>
+        <button class="btn-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-sub" style="margin-bottom: 8px;">Verify Attending details and confirm PIN release. Summary logs to secure ABDM gateways.</div>
+        <div class="modal-field">
+          <div class="modal-label">Physician</div>
+          <div class="modal-val">Dr. Priya Nair &nbsp;·&nbsp; Senior Resident, Internal Medicine</div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-label">Release Timestamp</div>
+          <div class="modal-val" id="modal-ts">—</div>
+        </div>
+        <div class="pin-row" onclick="focusPinInput()">
+          <div class="pin-label">Enter your 4-digit signature PIN</div>
+          <div class="pin-dots" id="pin-dots">
+            <div class="pin-dot" id="pd0">·</div>
+            <div class="pin-dot" id="pd1">·</div>
+            <div class="pin-dot" id="pd2">·</div>
+            <div class="pin-dot" id="pd3">·</div>
+          </div>
+          <input class="pin-input" id="pin-input" type="tel" maxlength="4" inputmode="numeric" oninput="handlePin(this.value)">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="m-btn cancel" onclick="closeModal()">Cancel</button>
+        <button class="m-btn confirm" id="confirm-btn" onclick="confirmApprove()">Release document</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL: Gemini API Configuration -->
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ Gemini API Configuration</div>
+        <button class="btn-close" onclick="closeSettingsModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--slate); line-height: 1.5">Configure Google Gemini API keys directly in your browser. All translations and drafts process in-client secure.</p>
+        <div class="alert-info-box">
+          <strong>🔒 Privacy Guard Policy:</strong> API Keys are stored strictly in local browser cache (`localStorage`). Transcripts route directly to Google's API; no middleware registers patient information.
+        </div>
+        <div class="modal-field">
+          <div class="modal-label" style="font-weight:600">Gemini API Key</div>
+          <input class="med-planner-input" type="password" id="api-key-input" placeholder="AIzaSy...">
+        </div>
+        <div class="modal-field">
+          <div class="modal-label" style="font-weight:600">API Precision Model</div>
+          <select class="med-planner-input" id="api-model-select">
+            <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash (Fastest)</option>
+            <option value="gemini-2.0-pro">Gemini 2.0 Pro (Clinical Precision)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="m-btn cancel" onclick="clearSettings()">Clear Key</button>
+        <button class="m-btn confirm ready" onclick="saveSettings()">Save &amp; Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Printable Area Template (Hidden on Desktop, Visible on Print) -->
+  <div id="print-template" class="print-only">
+    <div class="print-letterhead">
+      <h2>QUICKDISCHARGE CLINICAL WORKSTATION</h2>
+      <p>A Subsidiary of Qtv (<a href="https://qtvhr.com/" target="_blank" style="color:inherit; text-decoration:underline;">https://qtvhr.com/</a>) | Developed by Dinesh Velusamy & Dr. JaiKanna</p>
+      <div class="lh-badge" id="print-approved-badge">OFFICIAL DISCHARGE SUMMARY</div>
+    </div>
+
+    <div class="print-demographics-grid">
+      <div><strong>Patient Name:</strong> <span id="print-pat-name">John Doe</span></div>
+      <div><strong>MRN / IP No:</strong> <span id="print-pat-mrn">MRN-8472-A</span></div>
+      <div><strong>Age &amp; Gender:</strong> <span id="print-pat-age">62 Years, Male</span></div>
+      <div><strong>Stay Dates:</strong> <span id="print-pat-dates">Adm: May 14, 2025 - Dis: May 19, 2025</span></div>
+    </div>
+
+    <div class="print-section">
+      <h3 class="print-section-title">1. CLINICAL DIAGNOSIS &amp; ICD CODES</h3>
+      <div id="print-diagnosis" class="print-prose" style="font-weight: 700; white-space: pre-line;"></div>
+    </div>
+    
+    <div class="print-section">
+      <h3 class="print-section-title">2. CHIEF COMPLAINT &amp; PRESENTING HISTORY</h3>
+      <div id="print-chief-complaint" class="print-prose" style="white-space: pre-line;"></div>
+    </div>
+    
+    <div class="print-section">
+      <h3 class="print-section-title">3. INVESTIGATIONS &amp; CLINICAL FINDINGS</h3>
+      <div id="print-investigations" class="print-prose" style="white-space: pre-line;"></div>
+    </div>
+    
+    <div class="print-section">
+      <h3 class="print-section-title">4. DISCHARGE MEDICATIONS Prescriptions</h3>
+      <table class="print-med-table">
+        <thead>
+          <tr>
+            <th>Medication / Prescription</th>
+            <th>Instructions</th>
+          </tr>
+        </thead>
+        <tbody id="print-meds-body">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="print-section page-break">
+      <h3 class="print-section-title">5. PATIENT VISIT SUMMARY &amp; ADVICE (PLAIN LANGUAGE Q&amp;A)</h3>
+      
+      <div class="print-qa-card">
+        <div class="print-qa-question">Why were you admitted to the hospital?</div>
+        <div class="print-qa-answer" id="print-qa-why">Why detail</div>
+      </div>
+
+      <div class="print-qa-card">
+        <div class="print-qa-question">What treatments did you receive?</div>
+        <div class="print-qa-answer" id="print-qa-treatments">Treatments detail</div>
+      </div>
+
+      <div class="print-qa-card">
+        <div class="print-qa-question">What are your follow-up plans and active restrictions?</div>
+        <div class="print-qa-answer" id="print-qa-followup">Followup detail</div>
+      </div>
+
+      <div class="print-qa-card danger-card">
+        <div class="print-qa-question" style="color:#B91C1C">⚠️ When should you seek immediate emergency care?</div>
+        <div class="print-qa-answer" id="print-qa-warnings" style="color:#B91C1C">Warnings detail</div>
+      </div>
+    </div>
+
+    <div class="print-signatures">
+      <div class="sig-line">
+        <div class="sig-space"></div>
+        <p>Attending Resident Physician Signature</p>
+      </div>
+      <div class="sig-line">
+        <div class="sig-space"></div>
+        <p>Discharge Nurse Witness</p>
+      </div>
+      <div class="sig-line">
+        <div class="date-space" id="print-today-date">May 26, 2026</div>
+        <p>Date Approved</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DPDP 2023 REGULATORY CONSENT NOTICE OVERLAY -->
+  <div class="dpdp-consent-banner hidden" id="dpdp-consent-banner">
+    <div class="dpdp-consent-text">
+      🔒 <strong>DPDP Act 2023 Compliance Gate:</strong> QuickDischarge secures personal health information (PHI) utilizing browser-isolated sandboxes under Qtv & ABDM guidelines. By clicking Accept, you verify that explicit informed clinical consent has been recorded for active data processing.
+    </div>
+    <button class="dpdp-consent-btn" onclick="acceptConsent()">Accept &amp; Proceed</button>
+  </div>
+
+  <!-- 🛠️ QAS STAGING DEBUG CONTROLLER (PRD-TYPE SANDBOX) -->
+  <div class="qas-debug-trigger hidden" id="qas-debug-trigger" onclick="toggleQasConsole()" title="Open QAS Staging Debug Panel">
+    🛠️ Staging Console
+  </div>
+  
+  <div class="qas-debug-console hidden" id="qas-debug-console">
+    <div class="qas-console-header">
+      <span>🛠️ QAS Staging Controller</span>
+      <button class="qas-console-close" onclick="toggleQasConsole()">×</button>
+    </div>
+    <div class="qas-console-body">
+      <div class="qas-console-sub">Inject clinical scenarios, latency delays, and connection faults to stress-test QuickDischarge's production-grade safety gates.</div>
+      
+      <div class="qas-group-title">Inject Clinical Warnings</div>
+      <div class="qas-buttons">
+        <button class="qas-btn" onclick="injectQasScenario('PENICILLIN')">🚨 Penicillin Allergy Alert</button>
+        <button class="qas-btn" onclick="injectQasScenario('ASPIRIN')">⚠️ Aspirin Omission Alert</button>
+        <button class="qas-btn" onclick="injectQasScenario('INSULIN')">⚠️ Insulin Omission Alert</button>
+      </div>
+      
+      <div class="qas-group-title">Inject Connection Faults</div>
+      <div class="qas-buttons">
+        <button class="qas-btn" id="qas-btn-latency" onclick="toggleQasLatency()">⏳ Inject API Latency (8s)</button>
+        <button class="qas-btn" id="qas-btn-error" onclick="toggleQasError()">💥 Force API Error (HTTP 429)</button>
+      </div>
+      
+      <div class="qas-buttons" style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px;">
+        <button class="qas-btn reset" onclick="resetQasWorkstation()">🔄 Reset All Sandbox States</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Script logic -->
+  <script src="app.js"></script>
+</body>
+</html>
