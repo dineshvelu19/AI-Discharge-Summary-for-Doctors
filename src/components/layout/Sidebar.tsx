@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Menu } from 'lucide-react';
 
 export function Sidebar() {
@@ -12,9 +13,9 @@ export function Sidebar() {
       </div>
       <nav className="space-y-2">
         <div className="text-sm font-medium text-slate-500 px-3 py-2">Navigation</div>
-        <a href="/" className="block px-3 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+        <Link href="/" className="block px-3 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           Dashboard
-        </a>
+        </Link>
         <a href="#" className="block px-3 py-2 rounded-lg text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           Drafts
         </a>
