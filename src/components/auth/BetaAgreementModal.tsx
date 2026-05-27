@@ -8,6 +8,7 @@ export default function BetaAgreementModal({ children }: { children: React.React
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line
     setIsMounted(true);
     // Optional: read from localStorage to skip if already accepted in this session
     // const hasAccepted = sessionStorage.getItem("beta-accepted");

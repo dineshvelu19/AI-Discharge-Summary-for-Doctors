@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
-import { ShieldAlert, CheckCircle, X } from 'lucide-react';
+import { ShieldAlert, X } from 'lucide-react';
 
-export const ConsentBanner = ({ patientId, onConsentGiven }: { patientId: string, onConsentGiven?: () => void }) => {
+export const ConsentBanner = ({ onConsentGiven }: { patientId?: string, onConsentGiven?: () => void }) => {
   const [isVisible, setIsVisible] = useState(true);
-  const [consentGranted, setConsentGranted] = useState(false);
 
   const handleAccept = async () => {
     // In a real app, you would make an API call here to record consent
     // e.g. await fetch(`/api/patients/${patientId}/consent`, { method: 'POST', body: JSON.stringify({ act: 'DPDP_2023', granted: true }) });
-    setConsentGranted(true);
     setIsVisible(false);
     if (onConsentGiven) {
       onConsentGiven();

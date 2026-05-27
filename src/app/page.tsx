@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { WardQueue } from '@/components/queue/WardQueue';
 import { DemographicsHeader } from '@/components/patient/DemographicsHeader';
 import { FileText, Sparkles, Activity, FileCheck, BrainCircuit, ArrowLeft } from 'lucide-react';
@@ -76,7 +76,7 @@ export default function Home() {
       <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Good Morning, Dr. Reynolds</h1>
-          <p className="text-slate-500 mt-1">Here's your clinical overview for today, September 16, 2026.</p>
+          <p className="text-slate-500 mt-1">Here&apos;s your clinical overview for today, September 16, 2026.</p>
         </div>
         
         <div className="flex gap-3">

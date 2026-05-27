@@ -1,6 +1,6 @@
 import BetaAgreementModal from "@/components/auth/BetaAgreementModal";
 import { Activity, Mail, Lock, ArrowRight } from "lucide-react";
-import Link from "next/link";
+
 
 export default function LoginPage() {
   return (
