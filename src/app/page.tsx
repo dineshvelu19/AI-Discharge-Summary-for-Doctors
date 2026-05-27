@@ -6,11 +6,19 @@ import { DemographicsHeader } from '@/components/patient/DemographicsHeader';
 import { FileText, Sparkles, Activity, FileCheck, BrainCircuit, ArrowLeft } from 'lucide-react';
 import { AILoader } from '@/components/ui/AILoader';
 import { DraftPreview } from '@/components/draft/DraftPreview';
+import { INITIAL_PATIENTS } from '@/lib/clinicalData';
+import { Patient } from '@/types/clinical';
 
 export default function Home() {
+  const [patients, setPatients] = useState<Patient[]>(INITIAL_PATIENTS);
+  const [selectedPatientIndex, setSelectedPatientIndex] = useState<number>(0);
   const [view, setView] = useState<'dashboard' | 'generating' | 'draft'>('dashboard');
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("Synthesizing clinical data...");
+
+  const handleUpdatePatient = (updatedPatient: Patient) => {
+    setPatients(patients.map((p, i) => i === selectedPatientIndex ? updatedPatient : p));
+  };
 
   const startGeneration = () => {
     setView('generating');
@@ -46,6 +54,8 @@ export default function Home() {
     }, 600);
   };
 
+  const activePatient = patients[selectedPatientIndex];
+
   if (view === 'generating') {
     return (
       <main className="max-w-7xl mx-auto min-h-[80vh] flex items-center justify-center animate-in fade-in zoom-in-95 duration-500">
@@ -65,10 +75,19 @@ export default function Home() {
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" aria-hidden="true" />
           Back to Dashboard
         </button>
-        <DraftPreview />
+        <DraftPreview 
+          patient={activePatient}
+          onUpdatePatient={handleUpdatePatient}
+          onBack={() => setView('dashboard')}
+        />
       </main>
     );
   }
+
+  // Count summary metrics dynamically
+  const pendingCount = patients.filter(p => p.status !== 'ok').length;
+  const readyCount = patients.filter(p => p.status === 'pend').length;
+  const approvedCount = patients.filter(p => p.status === 'ok').length;
 
   return (
     <main className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -101,10 +120,10 @@ export default function Home() {
       {/* Stats Cards */}
       <section className="grid grid-cols-1 md:grid-cols-4 gap-6" aria-label="Dashboard statistics">
         {[
-          { label: 'Active Patients', value: '24', icon: <Activity className="text-blue-500" aria-hidden="true" />, trend: '+2 today' },
-          { label: 'Pending Summaries', value: '7', icon: <FileText className="text-amber-500" aria-hidden="true" />, trend: '3 high priority' },
-          { label: 'Ready to Sign', value: '4', icon: <FileCheck className="text-green-500" aria-hidden="true" />, trend: 'Needs review' },
-          { label: 'AI Time Saved', value: '2.5h', icon: <BrainCircuit className="text-purple-500" aria-hidden="true" />, trend: 'This week' },
+          { label: 'Active Patients', value: patients.length.toString(), icon: <Activity className="text-blue-500" aria-hidden="true" />, trend: '+2 today' },
+          { label: 'Pending Summaries', value: pendingCount.toString(), icon: <FileText className="text-amber-500" aria-hidden="true" />, trend: 'Needs review' },
+          { label: 'Ready to Sign', value: readyCount.toString(), icon: <FileCheck className="text-green-500" aria-hidden="true" />, trend: 'Action required' },
+          { label: 'Approved Summaries', value: approvedCount.toString(), icon: <BrainCircuit className="text-purple-500" aria-hidden="true" />, trend: 'Signed off' },
         ].map((stat, i) => (
           <div 
             key={i} 
@@ -139,12 +158,19 @@ export default function Home() {
             View Full Chart
           </button>
         </div>
-        <DemographicsHeader />
+        <DemographicsHeader patient={activePatient} />
       </section>
 
       {/* Ward Queue */}
       <section className="pt-4" aria-label="Ward Queue Section">
-        <WardQueue />
+        <WardQueue 
+          patients={patients} 
+          selectedIndex={selectedPatientIndex} 
+          onSelect={(idx) => {
+            setSelectedPatientIndex(idx);
+            setView('draft');
+          }}
+        />
       </section>
     </main>
   );
