@@ -8,10 +8,14 @@ export async function GET(request: Request) {
   const next = searchParams.get('next') ?? '/reset-password'
 
   if (code) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error("Supabase environment variables are missing during auth callback.");
+      return NextResponse.redirect(`${origin}/login?error=Configuration+error`)
+    }
     const cookieStore = await cookies()
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       {
         cookies: {
           getAll() {
