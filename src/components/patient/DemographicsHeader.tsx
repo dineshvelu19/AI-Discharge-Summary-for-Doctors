@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, User, Phone, MapPin, Activity, ShieldAlert } from 'lucide-react';
+import { Calendar, User, MapPin, Activity, ShieldAlert } from 'lucide-react';
 import { Patient } from '@/types/clinical';
 
 export function DemographicsHeader({ patient }: { patient: Patient }) {
